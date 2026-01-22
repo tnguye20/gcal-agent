@@ -38,10 +38,14 @@ export class InstagramExtractor {
       const puppeteerCore = await import('puppeteer-core');
       const chromium = await import('@sparticuz/chromium');
       
+      // Set chromium path for Vercel
+      const executablePath = await chromium.default.executablePath('/tmp/chromium');
+      
       browser = await puppeteerCore.default.launch({
-        args: [...chromium.default.args, '--disable-gpu', '--single-process', '--no-zygote', '--no-sandbox'],
-        executablePath: await chromium.default.executablePath(),
-        headless: true,
+        args: chromium.default.args,
+        defaultViewport: chromium.default.defaultViewport,
+        executablePath,
+        headless: chromium.default.headless,
       });
     } else {
       // Development: use full puppeteer with bundled Chromium
