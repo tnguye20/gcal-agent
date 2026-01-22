@@ -1,11 +1,10 @@
 import type { Browser } from 'puppeteer-core';
-import OpenAI from 'openai';
 import { InstagramPost } from '../types';
 
 export class InstagramExtractor {
   /**
    * Extract Instagram post data from URL
-   * Uses scraping first, falls back to Perplexity AI if needed
+   * Uses browser scraping to extract content
    */
   async extractFromUrl(url: string): Promise<InstagramPost> {
     // Validate Instagram URL
@@ -13,14 +12,7 @@ export class InstagramExtractor {
       throw new Error('Invalid Instagram URL');
     }
 
-    try {
-      // Try scraping first - direct extraction from Instagram
-      return await this.extractViaScraping(url);
-    } catch (error) {
-      console.log('Scraping failed, trying Perplexity fallback...', error);
-      // Fallback to Perplexity AI
-      return await this.extractViaPerplexity(url);
-    }
+    return await this.extractViaScraping(url);
   }
 
   private isValidInstagramUrl(url: string): boolean {
@@ -33,78 +25,7 @@ export class InstagramExtractor {
   }
 
   /**
-   * Extract via Perplexity AI (primary method)
-   * Perplexity can fetch and parse web content intelligently
-   */
-  private async extractViaPerplexity(url: string): Promise<InstagramPost> {
-    const apiKey = process.env.PERPLEXITY_API_KEY;
-    if (!apiKey) {
-      throw new Error('PERPLEXITY_API_KEY not configured');
-    }
-
-    const client = new OpenAI({
-      apiKey,
-      baseURL: 'https://api.perplexity.ai',
-    });
-
-    const systemPrompt = `You are an Instagram content extractor with web scraping capabilities. You MUST actively visit and fetch the actual content from Instagram URLs provided to you.
-
-CRITICAL: You must ALWAYS scrape and fetch the live content from the Instagram URL. Do not rely on prior knowledge or cached data. Visit the URL and extract the current post information.
-
-Return ONLY a valid JSON object with these fields:
-- caption: The post caption/description text (string)
-- username: The Instagram username who posted it (string)
-- thumbnailUrl: The main image/video thumbnail URL (string, optional)
-
-Return ONLY the JSON object, no additional text or markdown formatting.`;
-
-    const userPrompt = `IMPORTANT: You MUST visit and scrape this Instagram URL right now to extract the current post information: ${url}
-
-Do not use cached information. Fetch the live page content and extract:
-1. The post caption/description
-2. The username of who posted it
-3. The thumbnail image URL if available
-
-Visit the URL and return the extracted data as JSON.`;
-
-    try {
-      const response = await client.chat.completions.create({
-        model: 'sonar',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.2,
-      });
-
-      const content = response.choices[0].message.content;
-      if (!content) {
-        throw new Error('No response from Perplexity');
-      }
-
-      // Extract JSON from markdown code blocks if present
-      let jsonString = content.trim();
-      const codeBlockMatch = jsonString.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
-      if (codeBlockMatch) {
-        jsonString = codeBlockMatch[1].trim();
-      }
-      jsonString = jsonString.replace(/^`+|`+$/g, '').trim();
-
-      const parsed = JSON.parse(jsonString);
-
-      return {
-        url,
-        caption: parsed.caption || '',
-        username: parsed.username || '',
-        thumbnailUrl: parsed.thumbnailUrl || '',
-      };
-    } catch (error) {
-      throw new Error(`Perplexity extraction failed: ${error}`);
-    }
-  }
-
-  /**
-   * Extract via headless browser scraping (fallback)
+   * Extract via headless browser scraping
    */
   private async extractViaScraping(url: string): Promise<InstagramPost> {
     // Detect environment and dynamically import the appropriate puppeteer package
