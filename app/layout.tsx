@@ -24,7 +24,11 @@ export const metadata: Metadata = {
   authors: [{ name: 'CalSnap' }],
   creator: 'CalSnap',
   publisher: 'CalSnap',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(
+    process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  ),
   alternates: {
     canonical: '/',
   },
