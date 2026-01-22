@@ -1,4 +1,3 @@
-import type { Browser } from 'puppeteer-core';
 import { InstagramPost } from '../types';
 
 export class InstagramExtractor {
