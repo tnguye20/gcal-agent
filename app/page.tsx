@@ -68,19 +68,19 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center p-5">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-10">
-        <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
+    <main className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center p-4 sm:p-6 md:p-8">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 md:p-10">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-2">
           📅 Instagram to Calendar
         </h1>
-        <p className="text-gray-600 text-center mb-8 text-sm">
+        <p className="text-gray-600 text-center mb-6 sm:mb-8 text-sm">
           Convert Instagram posts to Google Calendar invites instantly
         </p>
 
         {/* Tabs */}
-        <div className="flex gap-3 mb-6 border-b-2 border-gray-200">
+        <div className="flex gap-2 sm:gap-3 mb-6 border-b-2 border-gray-200">
           <button
-            className={`pb-3 px-5 font-semibold transition-colors relative ${
+            className={`pb-3 px-3 sm:px-5 font-semibold text-sm sm:text-base transition-colors relative ${
               activeTab === 'instagram'
                 ? 'text-purple-600'
                 : 'text-gray-500 hover:text-gray-700'
@@ -93,7 +93,7 @@ export default function Home() {
             )}
           </button>
           <button
-            className={`pb-3 px-5 font-semibold transition-colors relative ${
+            className={`pb-3 px-3 sm:px-5 font-semibold text-sm sm:text-base transition-colors relative ${
               activeTab === 'text'
                 ? 'text-purple-600'
                 : 'text-gray-500 hover:text-gray-700'
@@ -115,8 +115,9 @@ export default function Home() {
                 Paste Instagram Post or Reel URL
               </label>
               <input
-                type="text"
-                className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none text-gray-800"
+                type="url"
+                inputMode="url"
+                className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none text-gray-800 text-base"
                 placeholder="https://www.instagram.com/p/..."
                 value={instagramUrl}
                 onChange={(e) => setInstagramUrl(e.target.value)}
@@ -133,7 +134,7 @@ export default function Home() {
                 Enter Event Text
               </label>
               <textarea
-                className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none min-h-[120px] text-gray-800"
+                className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-xl focus:border-purple-600 focus:outline-none min-h-[120px] sm:min-h-[140px] text-gray-800 text-base"
                 placeholder="Paste event details here... e.g., 'Team meeting tomorrow at 2pm in Conference Room A'"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -147,7 +148,7 @@ export default function Home() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-4 sm:py-3.5 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-base sm:text-base touch-manipulation"
           >
             {loading ? 'Processing with AI...' : 'Convert to Calendar Event'}
           </button>
@@ -170,10 +171,10 @@ export default function Home() {
 
         {/* Results */}
         {result && result.eventInfo && (
-          <div className="mt-8 p-5 bg-gray-50 rounded-xl">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">✨ Event Created!</h3>
+          <div className="mt-6 sm:mt-8 p-4 sm:p-5 bg-gray-50 rounded-xl">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">✨ Event Created!</h3>
             
-            <div className="bg-white p-4 rounded-lg mb-4">
+            <div className="bg-white p-3 sm:p-4 rounded-lg mb-4">
               <p className="mb-2">
                 <strong className="text-gray-700">📋 Title:</strong>{' '}
                 <span className="text-gray-800">{result.eventInfo.title}</span>
@@ -205,12 +206,12 @@ export default function Home() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <a
                 href={(result.eventInfo as any).googleUrl || result.calendarUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-center py-2.5 bg-blue-500 text-white font-semibold rounded-lg hover:-translate-y-0.5 transition-transform"
+                className="block text-center py-3.5 sm:py-2.5 bg-blue-500 text-white font-semibold rounded-lg active:scale-95 transition-transform touch-manipulation"
               >
                 📅 Add to Google
               </a>
@@ -218,14 +219,14 @@ export default function Home() {
                 href={(result.eventInfo as any).outlookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block text-center py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:-translate-y-0.5 transition-transform"
+                className="block text-center py-3.5 sm:py-2.5 bg-blue-600 text-white font-semibold rounded-lg active:scale-95 transition-transform touch-manipulation"
               >
                 📆 Add to Outlook
               </a>
               <a
                 href={(result.eventInfo as any).appleUrl}
                 download="event.ics"
-                className="block text-center py-2.5 bg-gray-700 text-white font-semibold rounded-lg hover:-translate-y-0.5 transition-transform"
+                className="block text-center py-3.5 sm:py-2.5 bg-gray-700 text-white font-semibold rounded-lg active:scale-95 transition-transform touch-manipulation"
               >
                 🍎 Add to Apple
               </a>
