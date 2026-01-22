@@ -3,15 +3,15 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'AI Calendar Event Creator - Convert Posts & Images to Google Calendar',
-    template: '%s | AI Calendar Event Creator',
+    default: 'CalSnap - Snap Any Content Into Calendar Events with AI',
+    template: '%s | CalSnap',
   },
-  description: 'Convert Instagram posts, text, and images into Google Calendar events instantly with AI. Extract event details from screenshots and social media posts automatically. Free online tool.',
+  description: 'CalSnap turns Instagram posts, text, and images into Google Calendar events instantly with AI. Snap event details from screenshots and social media automatically. Free online tool.',
   keywords: [
+    'calsnap',
     'google calendar',
     'calendar event creator',
     'instagram to calendar',
-    'ai event extractor',
     'calendar converter',
     'event from image',
     'screenshot to calendar',
@@ -21,9 +21,9 @@ export const metadata: Metadata = {
     'perplexity ai',
     'gemini ai',
   ],
-  authors: [{ name: 'GCal Agent' }],
-  creator: 'GCal Agent',
-  publisher: 'GCal Agent',
+  authors: [{ name: 'CalSnap' }],
+  creator: 'CalSnap',
+  publisher: 'CalSnap',
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
   alternates: {
     canonical: '/',
@@ -32,24 +32,24 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    title: 'AI Calendar Event Creator - Convert Posts & Images to Google Calendar',
-    description: 'Convert Instagram posts, text, and images into Google Calendar events instantly with AI. Extract event details automatically.',
-    siteName: 'AI Calendar Event Creator',
+    title: 'CalSnap - Snap Any Content Into Calendar Events with AI',
+    description: 'CalSnap turns Instagram posts, text, and images into Google Calendar events instantly with AI. Snap event details automatically.',
+    siteName: 'CalSnap',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'AI Calendar Event Creator',
+        alt: 'CalSnap',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Calendar Event Creator - Convert Posts & Images to Google Calendar',
-    description: 'Convert Instagram posts, text, and images into Google Calendar events instantly with AI.',
+    title: 'CalSnap - Snap Any Content Into Calendar Events with AI',
+    description: 'CalSnap turns Instagram posts, text, and images into Google Calendar events instantly with AI.',
     images: ['/og-image.png'],
-    creator: '@gcalagent',
+    creator: '@calsnap',
   },
   robots: {
     index: true,
@@ -89,7 +89,7 @@ export default function RootLayout({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: 'AI Calendar Event Creator',
+    name: 'CalSnap',
     applicationCategory: 'ProductivityApplication',
     operatingSystem: 'All',
     offers: {
@@ -97,7 +97,7 @@ export default function RootLayout({
       price: '0',
       priceCurrency: 'USD',
     },
-    description: 'Convert Instagram posts, text, and images into Google Calendar events instantly with AI',
+    description: 'CalSnap turns Instagram posts, text, and images into Google Calendar events instantly with AI',
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.8',

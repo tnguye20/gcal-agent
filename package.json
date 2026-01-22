@@ -1,7 +1,7 @@
 {
-  "name": "gcal-agent",
+  "name": "calsnap",
   "version": "1.0.0",
-  "description": "Convert Instagram posts to Google Calendar invites",
+  "description": "CalSnap - Snap any content into calendar events with AI",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -305,7 +305,7 @@ export default function Home() {
             </svg>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white">
-            Event Extractor
+            CalSnap
           </h1>
         </div>
         <p className="text-zinc-400 text-center mb-6 sm:mb-8 text-sm">
