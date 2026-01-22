@@ -17,28 +17,38 @@ export class PerplexityParser {
    */
   async parseEventInfo(text: string, context?: string): Promise<ParsedEventInfo> {
     const currentDate = new Date().toISOString();
+    const currentYear = new Date().getFullYear();
     
     const systemPrompt = `You are an expert at extracting event information from social media posts and text. 
 Extract calendar event details from the provided text.
 
 Current date/time for reference: ${currentDate}
+Current year: ${currentYear}
 
 IMPORTANT: Return ONLY a valid JSON object. Do not wrap it in markdown code blocks or backticks.
 
 Return a JSON object with:
 - title: Event name/title (required)
-- startDateTime: ISO 8601 format (required)
-- endDateTime: ISO 8601 format (required, default to 1 hour after start if not specified)
-- location: Physical or virtual location (optional)
+- startDateTime: ISO 8601 format with timezone offset (required), e.g., "2026-02-01T12:00:00-05:00"
+- endDateTime: ISO 8601 format with timezone offset (required), e.g., "2026-02-01T18:00:00-05:00"
+- location: Full physical address or virtual location (optional)
 - description: Brief description (optional)
 
-Rules:
+CRITICAL TIME PARSING RULES:
+1. "12-6pm" means 12:00 PM (noon) to 6:00 PM, NOT 12am or 5am
+2. "12pm" or "12:00pm" means NOON (12:00), not midnight
+3. "6pm" means 18:00 in 24-hour format
+4. Always interpret times in the local timezone (assume US Eastern -05:00 unless specified)
+5. When a range like "12-6pm" is given, both times share the pm/am suffix
+6. For recurring events ("every weekend", "Fridays-Sundays"), use the FIRST upcoming occurrence
+
+Other rules:
 1. If no explicit date/time found, infer from context or use "suggested" dates
 2. For relative dates like "tomorrow", "next week", calculate from current date
-3. If only date given (no time), default to 10:00 AM
+3. If only date given (no time), default to 10:00 AM local time
 4. If no end time given, default to 1 hour after start
-5. Be intelligent about inferring event type from context
-6. Extract location mentions (addresses, venue names, "virtual", "zoom", etc.)
+5. Extract FULL location with address (e.g., "New Kam Man, 200 Canal Street" not just "Kamman Canal")
+6. Be intelligent about inferring event type from context
 
 Return ONLY the JSON object, no additional text or formatting.`;
 
