@@ -4,7 +4,7 @@ import { InstagramPost } from '../types';
 export class InstagramExtractor {
   /**
    * Extract Instagram post data from URL
-   * Uses browser scraping to extract content
+   * Uses fetch-based scraping for serverless environments
    */
   async extractFromUrl(url: string): Promise<InstagramPost> {
     // Validate Instagram URL
@@ -12,7 +12,16 @@ export class InstagramExtractor {
       throw new Error('Invalid Instagram URL');
     }
 
-    return await this.extractViaScraping(url);
+    // Try fetch-based extraction first (works on Vercel)
+    try {
+      return await this.extractViaFetch(url);
+    } catch (fetchError) {
+      // Fall back to browser scraping in development
+      if (!process.env.VERCEL) {
+        return await this.extractViaBrowser(url);
+      }
+      throw fetchError;
+    }
   }
 
   private isValidInstagramUrl(url: string): boolean {
@@ -25,37 +34,58 @@ export class InstagramExtractor {
   }
 
   /**
-   * Extract via headless browser scraping
+   * Extract via fetch - works on Vercel serverless
+   * Instagram embeds OG meta tags in initial HTML response
    */
-  private async extractViaScraping(url: string): Promise<InstagramPost> {
-    // Detect environment and dynamically import the appropriate puppeteer package
-    const isProduction = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
-    
-    let browser: Browser;
-    
-    if (isProduction) {
-      // Production: use puppeteer-core with @sparticuz/chromium-min
-      const puppeteerCore = await import('puppeteer-core');
-      const chromium = await import('@sparticuz/chromium-min');
-      
-      // Use remotely hosted chromium for Vercel serverless
-      const executablePath = await chromium.default.executablePath(
-        'https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar'
-      );
-      
-      browser = await puppeteerCore.default.launch({
-        args: chromium.default.args,
-        defaultViewport: chromium.default.defaultViewport,
-        executablePath,
-        headless: chromium.default.headless,
-      });
-    } else {
-      // Development: use full puppeteer with bundled Chromium
-      const puppeteer = await import('puppeteer');
-      browser = await puppeteer.default.launch({
-        headless: true,
-      });
+  private async extractViaFetch(url: string): Promise<InstagramPost> {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Instagram post: ${response.status}`);
     }
+
+    const html = await response.text();
+
+    // Extract OG meta tags using regex
+    const getMetaContent = (property: string): string => {
+      const regex = new RegExp(`<meta[^>]*property=["']${property}["'][^>]*content=["']([^"']*)["']`, 'i');
+      const altRegex = new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*property=["']${property}["']`, 'i');
+      const match = html.match(regex) || html.match(altRegex);
+      return match ? match[1] : '';
+    };
+
+    const caption = getMetaContent('og:description') || getMetaContent('og:title') || '';
+    const thumbnailUrl = getMetaContent('og:image') || '';
+    const siteName = getMetaContent('og:site_name') || '';
+    
+    // Extract username from the caption or URL
+    const usernameMatch = caption.match(/^([^:]+):/);
+    const username = usernameMatch ? usernameMatch[1].trim() : siteName;
+
+    if (!caption && !thumbnailUrl) {
+      throw new Error('Could not extract Instagram post data - page may require login');
+    }
+
+    return {
+      url,
+      caption: caption.trim(),
+      thumbnailUrl,
+      username,
+    };
+  }
+
+  /**
+   * Extract via headless browser (development only)
+   */
+  private async extractViaBrowser(url: string): Promise<InstagramPost> {
+    const puppeteer = await import('puppeteer');
+    const browser = await puppeteer.default.launch({ headless: true });
 
     try {
       const page = await browser.newPage();
@@ -94,7 +124,7 @@ export class InstagramExtractor {
       };
     } catch (error) {
       await browser.close();
-      throw new Error(`Scraping failed: ${error}`);
+      throw new Error(`Browser scraping failed: ${error}`);
     }
   }
 
