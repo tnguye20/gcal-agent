@@ -35,20 +35,11 @@ export const metadata: Metadata = {
     title: 'CalSnap - Snap Any Content Into Calendar Events with AI',
     description: 'CalSnap turns Instagram posts, text, and images into Google Calendar events instantly with AI. Snap event details automatically.',
     siteName: 'CalSnap',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'CalSnap',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CalSnap - Snap Any Content Into Calendar Events with AI',
     description: 'CalSnap turns Instagram posts, text, and images into Google Calendar events instantly with AI.',
-    images: ['/og-image.png'],
     creator: '@calsnap',
   },
   robots: {
