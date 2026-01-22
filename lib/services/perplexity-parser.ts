@@ -46,6 +46,8 @@ Return ONLY the JSON object, no additional text or formatting.`;
       ? `Instagram Post Context: ${context}\n\nText to parse: ${text}`
       : `Text to parse: ${text}`;
 
+    let content: string | null = null;
+
     try {
       const response = await this.client.chat.completions.create({
         model: 'sonar',
@@ -56,7 +58,7 @@ Return ONLY the JSON object, no additional text or formatting.`;
         temperature: 0.3,
       });
 
-      const content = response.choices[0].message.content;
+      content = response.choices[0].message.content;
       if (!content) {
         throw new Error('No response from Perplexity');
       }
