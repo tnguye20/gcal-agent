@@ -1,4 +1,3 @@
-import axios from 'axios';
 import type { Browser } from 'puppeteer-core';
 import OpenAI from 'openai';
 import { InstagramPost } from '../types';
@@ -94,28 +93,6 @@ Fetch the page content and extract the caption, username, and thumbnail URL if a
       };
     } catch (error) {
       throw new Error(`Perplexity extraction failed: ${error}`);
-    }
-  }
-
-  /**
-   * Extract via Instagram's public oEmbed API (alternative)
-   */
-  private async extractViaOEmbed(url: string): Promise<InstagramPost> {
-    const oembedUrl = `https://graph.facebook.com/v18.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=&fields=thumbnail_url,author_name,title`;
-    
-    try {
-      const response = await axios.get(oembedUrl, {
-        timeout: 10000,
-      });
-
-      return {
-        url,
-        caption: response.data.title || '',
-        username: response.data.author_name || '',
-        thumbnailUrl: response.data.thumbnail_url || '',
-      };
-    } catch (error) {
-      throw new Error('oEmbed extraction failed');
     }
   }
 
