@@ -5,7 +5,7 @@ import { InstagramPost } from '../types';
 export class InstagramExtractor {
   /**
    * Extract Instagram post data from URL
-   * Uses Perplexity AI to parse the URL, falls back to scraping if needed
+   * Uses scraping first, falls back to Perplexity AI if needed
    */
   async extractFromUrl(url: string): Promise<InstagramPost> {
     // Validate Instagram URL
@@ -14,12 +14,12 @@ export class InstagramExtractor {
     }
 
     try {
-      // Try Perplexity first - it can fetch and parse web content
-      return await this.extractViaPerplexity(url);
-    } catch (error) {
-      console.log('Perplexity failed, trying scraping fallback...', error);
-      // Fallback to scraping with Chromium
+      // Try scraping first - direct extraction from Instagram
       return await this.extractViaScraping(url);
+    } catch (error) {
+      console.log('Scraping failed, trying Perplexity fallback...', error);
+      // Fallback to Perplexity AI
+      return await this.extractViaPerplexity(url);
     }
   }
 
@@ -47,7 +47,9 @@ export class InstagramExtractor {
       baseURL: 'https://api.perplexity.ai',
     });
 
-    const systemPrompt = `You are an Instagram content extractor. Given an Instagram URL, fetch and extract the post information.
+    const systemPrompt = `You are an Instagram content extractor with web scraping capabilities. You MUST actively visit and fetch the actual content from Instagram URLs provided to you.
+
+CRITICAL: You must ALWAYS scrape and fetch the live content from the Instagram URL. Do not rely on prior knowledge or cached data. Visit the URL and extract the current post information.
 
 Return ONLY a valid JSON object with these fields:
 - caption: The post caption/description text (string)
@@ -56,9 +58,14 @@ Return ONLY a valid JSON object with these fields:
 
 Return ONLY the JSON object, no additional text or markdown formatting.`;
 
-    const userPrompt = `Extract the Instagram post information from this URL: ${url}
+    const userPrompt = `IMPORTANT: You MUST visit and scrape this Instagram URL right now to extract the current post information: ${url}
 
-Fetch the page content and extract the caption, username, and thumbnail URL if available.`;
+Do not use cached information. Fetch the live page content and extract:
+1. The post caption/description
+2. The username of who posted it
+3. The thumbnail image URL if available
+
+Visit the URL and return the extracted data as JSON.`;
 
     try {
       const response = await client.chat.completions.create({
