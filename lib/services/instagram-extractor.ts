@@ -1,11 +1,12 @@
 import axios from 'axios';
 import type { Browser } from 'puppeteer-core';
+import OpenAI from 'openai';
 import { InstagramPost } from '../types';
 
 export class InstagramExtractor {
   /**
    * Extract Instagram post data from URL
-   * Tries oEmbed API first, falls back to scraping
+   * Uses Perplexity AI to parse the URL, falls back to scraping if needed
    */
   async extractFromUrl(url: string): Promise<InstagramPost> {
     // Validate Instagram URL
@@ -14,11 +15,11 @@ export class InstagramExtractor {
     }
 
     try {
-      // Try oEmbed API first (fast, public)
-      return await this.extractViaOEmbed(url);
+      // Try Perplexity first - it can fetch and parse web content
+      return await this.extractViaPerplexity(url);
     } catch (error) {
-      console.log('oEmbed failed, trying scraping...', error);
-      // Fallback to scraping
+      console.log('Perplexity failed, trying scraping fallback...', error);
+      // Fallback to scraping with Chromium
       return await this.extractViaScraping(url);
     }
   }
@@ -33,7 +34,71 @@ export class InstagramExtractor {
   }
 
   /**
-   * Extract via Instagram's public oEmbed API
+   * Extract via Perplexity AI (primary method)
+   * Perplexity can fetch and parse web content intelligently
+   */
+  private async extractViaPerplexity(url: string): Promise<InstagramPost> {
+    const apiKey = process.env.PERPLEXITY_API_KEY;
+    if (!apiKey) {
+      throw new Error('PERPLEXITY_API_KEY not configured');
+    }
+
+    const client = new OpenAI({
+      apiKey,
+      baseURL: 'https://api.perplexity.ai',
+    });
+
+    const systemPrompt = `You are an Instagram content extractor. Given an Instagram URL, fetch and extract the post information.
+
+Return ONLY a valid JSON object with these fields:
+- caption: The post caption/description text (string)
+- username: The Instagram username who posted it (string)
+- thumbnailUrl: The main image/video thumbnail URL (string, optional)
+
+Return ONLY the JSON object, no additional text or markdown formatting.`;
+
+    const userPrompt = `Extract the Instagram post information from this URL: ${url}
+
+Fetch the page content and extract the caption, username, and thumbnail URL if available.`;
+
+    try {
+      const response = await client.chat.completions.create({
+        model: 'sonar',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.2,
+      });
+
+      const content = response.choices[0].message.content;
+      if (!content) {
+        throw new Error('No response from Perplexity');
+      }
+
+      // Extract JSON from markdown code blocks if present
+      let jsonString = content.trim();
+      const codeBlockMatch = jsonString.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+      if (codeBlockMatch) {
+        jsonString = codeBlockMatch[1].trim();
+      }
+      jsonString = jsonString.replace(/^`+|`+$/g, '').trim();
+
+      const parsed = JSON.parse(jsonString);
+
+      return {
+        url,
+        caption: parsed.caption || '',
+        username: parsed.username || '',
+        thumbnailUrl: parsed.thumbnailUrl || '',
+      };
+    } catch (error) {
+      throw new Error(`Perplexity extraction failed: ${error}`);
+    }
+  }
+
+  /**
+   * Extract via Instagram's public oEmbed API (alternative)
    */
   private async extractViaOEmbed(url: string): Promise<InstagramPost> {
     const oembedUrl = `https://graph.facebook.com/v18.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=&fields=thumbnail_url,author_name,title`;
