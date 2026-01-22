@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ExtractionRequest, ExtractionResponse } from '@/lib/types';
 
 type TabType = 'instagram' | 'text' | 'image';
@@ -14,6 +14,39 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<ExtractionResponse | null>(null);
+
+  // Global paste handler
+  useEffect(() => {
+    const handleGlobalPaste = async (e: ClipboardEvent) => {
+      // Only handle paste when on image tab
+      if (activeTab !== 'image') return;
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          e.preventDefault();
+          const file = items[i].getAsFile();
+          if (file) {
+            setImageFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            setError('');
+          }
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('paste', handleGlobalPaste);
+    return () => {
+      document.removeEventListener('paste', handleGlobalPaste);
+    };
+  }, [activeTab]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -29,28 +62,6 @@ export default function Home() {
       };
       reader.readAsDataURL(file);
       setError('');
-    }
-  };
-
-  const handlePaste = async (e: React.ClipboardEvent) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith('image/')) {
-        e.preventDefault();
-        const file = items[i].getAsFile();
-        if (file) {
-          setImageFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setImagePreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-          setError('');
-        }
-        break;
-      }
     }
   };
 
@@ -220,7 +231,6 @@ export default function Home() {
               </label>
               <div 
                 className="w-full p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-purple-600 transition-colors cursor-pointer"
-                onPaste={handlePaste}
               >
                 <input
                   type="file"
@@ -245,7 +255,7 @@ export default function Home() {
                 </label>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Paste (Cmd+V / Ctrl+V) or upload an image with event details
+                📋 Tip: Paste (Cmd+V / Ctrl+V) an image from your clipboard while on this tab
               </p>
             </div>
           )}
