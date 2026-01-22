@@ -69,10 +69,9 @@ export class InstagramExtractor {
       const chromium = await import('@sparticuz/chromium');
       
       browser = await puppeteerCore.default.launch({
-        args: chromium.default.args,
-        defaultViewport: chromium.default.defaultViewport,
+        args: [...chromium.default.args, '--disable-gpu', '--single-process', '--no-zygote', '--no-sandbox'],
         executablePath: await chromium.default.executablePath(),
-        headless: chromium.default.headless,
+        headless: true,
       });
     } else {
       // Development: use full puppeteer with bundled Chromium
