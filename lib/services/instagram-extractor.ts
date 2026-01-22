@@ -71,7 +71,7 @@ export class InstagramExtractor {
       browser = await puppeteerCore.default.launch({
         args: chromium.default.args,
         defaultViewport: chromium.default.defaultViewport,
-        executablePath: await chromium.default.executablePath('/tmp'),
+        executablePath: await chromium.default.executablePath(),
         headless: chromium.default.headless,
       });
     } else {

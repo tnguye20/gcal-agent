@@ -5,7 +5,5 @@
       "maxDuration": 30
     }
   },
-  "env": {
-    "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true"
-  }
+  "outputDirectory": ".next"
 }
