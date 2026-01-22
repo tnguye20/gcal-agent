@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import NextImage from 'next/image';
 import { ExtractionRequest, ExtractionResponse } from '@/lib/types';
 
 type TabType = 'instagram' | 'text' | 'image';
@@ -184,6 +185,48 @@ export default function Home() {
     }
   };
 
+  const handlePasteFromClipboard = async () => {
+    try {
+      // Check if Clipboard API is supported
+      if (!navigator.clipboard || !navigator.clipboard.read) {
+        setError('Clipboard access not supported on this device. Please use the file picker instead.');
+        return;
+      }
+
+      const clipboardItems = await navigator.clipboard.read();
+      
+      for (const clipboardItem of clipboardItems) {
+        const imageTypes = clipboardItem.types.filter(type => type.startsWith('image/'));
+        
+        if (imageTypes.length > 0) {
+          const blob = await clipboardItem.getType(imageTypes[0]);
+          const file = new File([blob], 'clipboard-image.png', { type: blob.type });
+          
+          // Resize the image
+          const resizedFile = await resizeImage(file);
+          setImageFile(resizedFile);
+          
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+          };
+          reader.readAsDataURL(resizedFile);
+          setError('');
+          return;
+        }
+      }
+      
+      setError('No image found in clipboard. Please copy an image first.');
+    } catch (err: any) {
+      console.error('Clipboard paste error:', err);
+      if (err.name === 'NotAllowedError') {
+        setError('Clipboard access denied. Please grant permission to paste images.');
+      } else {
+        setError('Failed to paste from clipboard. Try using the file picker instead.');
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -361,7 +404,7 @@ export default function Home() {
                 <label htmlFor="image-upload" className="cursor-pointer block text-center">
                   {imagePreview ? (
                     <div className="space-y-3">
-                      <img src={imagePreview} alt="Preview" className="max-h-64 mx-auto rounded-lg" />
+                      <NextImage src={imagePreview} alt="Preview" width={256} height={256} className="max-h-64 mx-auto rounded-lg object-contain" unoptimized />
                       <p className="text-sm text-gray-600">Click to change image</p>
                     </div>
                   ) : (
@@ -373,8 +416,17 @@ export default function Home() {
                   )}
                 </label>
               </div>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={handlePasteFromClipboard}
+                  className="flex-1 py-3 px-4 bg-purple-100 text-purple-700 font-semibold rounded-lg hover:bg-purple-200 active:scale-95 transition-all text-sm touch-manipulation"
+                >
+                  📋 Paste from Clipboard
+                </button>
+              </div>
               <p className="text-xs text-gray-500 mt-2">
-                📋 Tip: Paste (Cmd+V / Ctrl+V) an image from your clipboard while on this tab
+                💡 Tip: Copy a screenshot, then tap &ldquo;Paste from Clipboard&rdquo; or use Cmd+V / Ctrl+V on desktop
               </p>
             </div>
           )}
