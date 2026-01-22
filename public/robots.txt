@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Sitemap: ${process.env.NEXT_PUBLIC_BASE_URL || 'https://yourdomain.com'}/sitemap.xml
+
+# Disallow API routes from being crawled
+User-agent: *
+Disallow: /api/

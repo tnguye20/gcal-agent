@@ -1,0 +1,27 @@
+{
+  "name": "AI Calendar Event Creator",
+  "short_name": "GCal Agent",
+  "description": "Convert Instagram posts, text, and images into Google Calendar events instantly with AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#9333ea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": [
+    {
+      "src": "/screenshot.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}
