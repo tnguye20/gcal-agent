@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { chromium } from 'playwright';
+import type { Browser } from 'puppeteer-core';
 import { InstagramPost } from '../types';
 
 export class InstagramExtractor {
@@ -58,20 +58,37 @@ export class InstagramExtractor {
    * Extract via headless browser scraping (fallback)
    */
   private async extractViaScraping(url: string): Promise<InstagramPost> {
-    const browser = await chromium.launch({ 
-      headless: true,
-    });
+    // Detect environment and dynamically import the appropriate puppeteer package
+    const isProduction = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+    
+    let browser: Browser;
+    
+    if (isProduction) {
+      // Production: use puppeteer-core with @sparticuz/chromium
+      const puppeteerCore = await import('puppeteer-core');
+      const chromium = await import('@sparticuz/chromium');
+      browser = await puppeteerCore.default.launch({
+        args: chromium.default.args,
+        executablePath: await chromium.default.executablePath(),
+        headless: true,
+      });
+    } else {
+      // Development: use full puppeteer with bundled Chromium
+      const puppeteer = await import('puppeteer');
+      browser = await puppeteer.default.launch({
+        headless: true,
+      });
+    }
 
     try {
-      const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      });
+      const page = await browser.newPage();
       
-      const page = await context.newPage();
-      await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+      
+      await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
 
       // Wait for content to load
-      await page.waitForTimeout(2000);
+      await page.waitForSelector('meta[property="og:description"]', { timeout: 5000 }).catch(() => {});
 
       // Extract data from meta tags
       const caption = await page.evaluate(() => {
