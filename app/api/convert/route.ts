@@ -10,21 +10,33 @@ const calendarGenerator = new CalendarGenerator();
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const contentType = request.headers.get('content-type') || '';
+    let body: any;
+    let imageBase64: string | null = null;
 
-    // Validate request
-    const validation = ExtractionRequestSchema.safeParse(body);
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: validation.error.errors[0].message,
-        },
-        { status: 400 }
-      );
+    // Handle multipart form data (image upload)
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const imageFile = formData.get('image') as File;
+      
+      if (imageFile) {
+        const bytes = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        imageBase64 = buffer.toString('base64');
+        body = { imageData: imageBase64 };
+      } else {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'No image file provided',
+          },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Handle JSON data
+      body = await request.json();
     }
-
-    const { instagramUrl, text, imageUrl } = validation.data as ExtractionRequest;
 
     // Validate Perplexity API key
     if (!process.env.PERPLEXITY_API_KEY) {
@@ -42,45 +54,44 @@ export async function POST(request: NextRequest) {
     let extractedText = '';
     let sourceUrl = '';
     let context = '';
+    let eventInfo: any;
 
+    // Handle image upload directly
+    if (body.imageData) {
+      console.log('Processing uploaded image with Perplexity...');
+      eventInfo = await perplexityParser.parseEventFromImage(body.imageData);
+    }
     // Extract from Instagram URL
-    if (instagramUrl) {
-      const normalizedUrl = normalizeInstagramUrl(instagramUrl);
+    else if (body.instagramUrl) {
+      const normalizedUrl = normalizeInstagramUrl(body.instagramUrl);
       const postData = await instagramExtractor.extractFromUrl(normalizedUrl);
       extractedText = postData.caption || '';
       sourceUrl = normalizedUrl;
       context = `Instagram post by ${postData.username || 'unknown'}`;
       
       console.log('Extracted from Instagram:', postData);
+      
+      // Parse event info using Perplexity
+      console.log('Parsing with Perplexity:', extractedText);
+      eventInfo = await perplexityParser.parseEventInfo(extractedText, context);
     } 
     // Or use plain text
-    else if (text) {
-      extractedText = text;
+    else if (body.text) {
+      extractedText = body.text;
+      
+      // Parse event info using Perplexity
+      console.log('Parsing with Perplexity:', extractedText);
+      eventInfo = await perplexityParser.parseEventInfo(extractedText, context);
     }
-    // Or handle image (future: OCR)
-    else if (imageUrl) {
+    else {
       return NextResponse.json(
         {
           success: false,
-          error: 'Image URL processing not yet implemented. Please provide text or Instagram URL.',
+          error: 'Please provide an Instagram URL, text, or image',
         },
         { status: 400 }
       );
     }
-
-    if (!extractedText) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No text content found to parse',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Parse event info using Perplexity
-    console.log('Parsing with Perplexity:', extractedText);
-    const eventInfo = await perplexityParser.parseEventInfo(extractedText, context);
 
     // Generate Google Calendar URL
     const calendarUrl = calendarGenerator.generateGoogleCalendarUrl(eventInfo, sourceUrl);

@@ -111,6 +111,98 @@ Return ONLY the JSON object, no additional text or formatting.`;
   }
 
   /**
+   * Parse event from image using Perplexity with base64 data
+   */
+  async parseEventFromImage(imageBase64: string): Promise<ParsedEventInfo> {
+    const currentDate = new Date().toISOString();
+    
+    const systemPrompt = `You are an expert at extracting event information from images.
+Extract calendar event details from the provided image.
+
+Current date/time for reference: ${currentDate}
+
+IMPORTANT: Return ONLY a valid JSON object. Do not wrap it in markdown code blocks or backticks.
+
+Return a JSON object with:
+- title: Event name/title (required)
+- startDateTime: ISO 8601 format (required)
+- endDateTime: ISO 8601 format (required, default to 1 hour after start if not specified)
+- location: Physical or virtual location (optional)
+- description: Brief description (optional)
+
+Rules:
+1. Extract all text and information visible in the image
+2. For relative dates like "tomorrow", "next week", calculate from current date
+3. If only date given (no time), default to 10:00 AM
+4. If no end time given, default to 1 hour after start
+5. Extract location from addresses, venue names in the image
+6. Be thorough - look for dates, times, locations, event names
+
+Return ONLY the JSON object, no additional text or formatting.`;
+
+    const userPrompt = `Analyze this image and extract all event information. Image data: ${imageBase64}`;
+
+    let content: string | null = null;
+
+    try {
+      const response = await this.client.chat.completions.create({
+        model: 'sonar',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.3,
+      });
+
+      content = response.choices[0].message.content;
+      if (!content) {
+        throw new Error('No response from Perplexity');
+      }
+
+      // Extract JSON from markdown code blocks if present
+      let jsonString = content.trim();
+      
+      const codeBlockMatch = jsonString.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+      if (codeBlockMatch) {
+        jsonString = codeBlockMatch[1].trim();
+      }
+      
+      jsonString = jsonString.replace(/^`+|`+$/g, '').trim();
+
+      const parsed = JSON.parse(jsonString) as ParsedEventInfo;
+
+      // Validate required fields
+      if (!parsed.title || !parsed.startDateTime || !parsed.endDateTime) {
+        throw new Error('Missing required event information in image');
+      }
+
+      // Validate dates
+      const start = new Date(parsed.startDateTime);
+      const end = new Date(parsed.endDateTime);
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new Error('Invalid date format');
+      }
+
+      if (end <= start) {
+        end.setHours(start.getHours() + 1);
+        parsed.endDateTime = end.toISOString();
+      }
+
+      return parsed;
+    } catch (error) {
+      console.error('Perplexity image parsing error:', error);
+      console.error('Raw content received:', content);
+      
+      if (error instanceof SyntaxError) {
+        throw new Error(`Failed to parse JSON response from Perplexity. The AI returned invalid JSON format.`);
+      }
+      
+      throw new Error(`Failed to extract event info from image: ${error}`);
+    }
+  }
+
+  /**
    * Enhance event description with AI
    */
   async enhanceDescription(originalText: string, eventInfo: ParsedEventInfo): Promise<string> {

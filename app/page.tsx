@@ -3,15 +3,56 @@
 import { useState } from 'react';
 import { ExtractionRequest, ExtractionResponse } from '@/lib/types';
 
-type TabType = 'instagram' | 'text';
+type TabType = 'instagram' | 'text' | 'image';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('instagram');
   const [instagramUrl, setInstagramUrl] = useState('');
   const [text, setText] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<ExtractionResponse | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setError('');
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        e.preventDefault();
+        const file = items[i].getAsFile();
+        if (file) {
+          setImageFile(file);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+          setError('');
+        }
+        break;
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,22 +61,36 @@ export default function Home() {
     setError('');
     setResult(null);
 
-    const payload: ExtractionRequest = {};
-    
-    if (activeTab === 'instagram') {
-      payload.instagramUrl = instagramUrl.trim();
-    } else if (activeTab === 'text') {
-      payload.text = text.trim();
-    }
-
     try {
-      const response = await fetch('/api/convert', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      let response;
+      
+      if (activeTab === 'image' && imageFile) {
+        // Handle image upload
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        
+        response = await fetch('/api/convert', {
+          method: 'POST',
+          body: formData,
+        });
+      } else {
+        // Handle text/URL input
+        const payload: ExtractionRequest = {};
+        
+        if (activeTab === 'instagram') {
+          payload.instagramUrl = instagramUrl.trim();
+        } else if (activeTab === 'text') {
+          payload.text = text.trim();
+        }
+
+        response = await fetch('/api/convert', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+      }
 
       const data = await response.json();
 
@@ -80,28 +135,41 @@ export default function Home() {
         {/* Tabs */}
         <div className="flex gap-2 sm:gap-3 mb-6 border-b-2 border-gray-200">
           <button
-            className={`pb-3 px-3 sm:px-5 font-semibold text-sm sm:text-base transition-colors relative ${
+            className={`pb-3 px-2 sm:px-4 font-semibold text-sm sm:text-base transition-colors relative ${
               activeTab === 'instagram'
                 ? 'text-purple-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
             onClick={() => setActiveTab('instagram')}
           >
-            Instagram URL
+            Instagram
             {activeTab === 'instagram' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600"></div>
             )}
           </button>
           <button
-            className={`pb-3 px-3 sm:px-5 font-semibold text-sm sm:text-base transition-colors relative ${
+            className={`pb-3 px-2 sm:px-4 font-semibold text-sm sm:text-base transition-colors relative ${
               activeTab === 'text'
                 ? 'text-purple-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
             onClick={() => setActiveTab('text')}
           >
-            Plain Text
+            Text
             {activeTab === 'text' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600"></div>
+            )}
+          </button>
+          <button
+            className={`pb-3 px-2 sm:px-4 font-semibold text-sm sm:text-base transition-colors relative ${
+              activeTab === 'image'
+                ? 'text-purple-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => setActiveTab('image')}
+          >
+            Image
+            {activeTab === 'image' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600"></div>
             )}
           </button>
@@ -141,6 +209,43 @@ export default function Home() {
               />
               <p className="text-xs text-gray-500 mt-2">
                 Include date, time, location, and event details
+              </p>
+            </div>
+          )}
+
+          {activeTab === 'image' && (
+            <div className="mb-5">
+              <label className="block mb-2 text-gray-700 font-semibold text-sm">
+                Upload or Paste Event Image
+              </label>
+              <div 
+                className="w-full p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-purple-600 transition-colors cursor-pointer"
+                onPaste={handlePaste}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload" className="cursor-pointer block text-center">
+                  {imagePreview ? (
+                    <div className="space-y-3">
+                      <img src={imagePreview} alt="Preview" className="max-h-64 mx-auto rounded-lg" />
+                      <p className="text-sm text-gray-600">Click to change image</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="text-4xl">📸</div>
+                      <p className="text-gray-600">Click to upload or paste an image</p>
+                      <p className="text-xs text-gray-500">Supports JPG, PNG, WebP</p>
+                    </div>
+                  )}
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Paste (Cmd+V / Ctrl+V) or upload an image with event details
               </p>
             </div>
           )}
