@@ -34,12 +34,14 @@ export class InstagramExtractor {
     let browser: Browser;
     
     if (isProduction) {
-      // Production: use puppeteer-core with @sparticuz/chromium
+      // Production: use puppeteer-core with @sparticuz/chromium-min
       const puppeteerCore = await import('puppeteer-core');
-      const chromium = await import('@sparticuz/chromium');
+      const chromium = await import('@sparticuz/chromium-min');
       
-      // Set chromium path for Vercel
-      const executablePath = await chromium.default.executablePath('/tmp/chromium');
+      // Use remotely hosted chromium for Vercel serverless
+      const executablePath = await chromium.default.executablePath(
+        'https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar'
+      );
       
       browser = await puppeteerCore.default.launch({
         args: chromium.default.args,
