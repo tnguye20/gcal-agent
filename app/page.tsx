@@ -17,6 +17,58 @@ export default function Home() {
 
   // Global paste handler
   useEffect(() => {
+    const resizeImageFromFile = async (file: File): Promise<File> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxWidth = 1024;
+            const maxHeight = 1024;
+
+            if (width > height) {
+              if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              reject(new Error('Failed to get canvas context'));
+              return;
+            }
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+              if (!blob) {
+                reject(new Error('Failed to create blob'));
+                return;
+              }
+              resolve(new File([blob], file.name, {
+                type: file.type,
+                lastModified: Date.now(),
+              }));
+            }, file.type, 0.85);
+          };
+          img.onerror = reject;
+          img.src = e.target?.result as string;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    };
+
     const handleGlobalPaste = async (e: ClipboardEvent) => {
       // Only handle paste when on image tab
       if (activeTab !== 'image') return;
@@ -29,13 +81,19 @@ export default function Home() {
           e.preventDefault();
           const file = items[i].getAsFile();
           if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-            setError('');
+            try {
+              const resizedFile = await resizeImageFromFile(file);
+              setImageFile(resizedFile);
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+              };
+              reader.readAsDataURL(resizedFile);
+              setError('');
+            } catch (err) {
+              console.error('Image resize error:', err);
+              setError('Failed to process pasted image');
+            }
           }
           break;
         }
@@ -48,6 +106,60 @@ export default function Home() {
     };
   }, [activeTab]);
 
+  const resizeImage = (file: File, maxWidth: number = 1024, maxHeight: number = 1024): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions while maintaining aspect ratio
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error('Failed to create blob'));
+              return;
+            }
+            const resizedFile = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now(),
+            });
+            resolve(resizedFile);
+          }, file.type, 0.85); // 85% quality for JPEG compression
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -55,13 +167,20 @@ export default function Home() {
         setError('Please select a valid image file');
         return;
       }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setError('');
+      
+      // Resize image before setting
+      resizeImage(file).then((resizedFile) => {
+        setImageFile(resizedFile);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(resizedFile);
+        setError('');
+      }).catch((err) => {
+        console.error('Image resize error:', err);
+        setError('Failed to process image');
+      });
     }
   };
 
