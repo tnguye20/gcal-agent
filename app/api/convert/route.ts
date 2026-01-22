@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { InstagramExtractor } from '@/lib/services/instagram-extractor';
 import { PerplexityParser } from '@/lib/services/perplexity-parser';
+import { GeminiParser } from '@/lib/services/gemini-parser';
 import { CalendarGenerator } from '@/lib/services/calendar-generator';
 import { ExtractionRequestSchema, normalizeInstagramUrl } from '@/lib/utils/validators';
 import { ExtractionRequest, ExtractionResponse } from '@/lib/types';
@@ -38,12 +39,22 @@ export async function POST(request: NextRequest) {
       body = await request.json();
     }
 
-    // Validate Perplexity API key
+    // Validate API keys
     if (!process.env.PERPLEXITY_API_KEY) {
       return NextResponse.json(
         {
           success: false,
           error: 'Perplexity API key not configured',
+        },
+        { status: 500 }
+      );
+    }
+
+    if (body.imageData && !process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Gemini API key not configured',
         },
         { status: 500 }
       );
@@ -56,10 +67,11 @@ export async function POST(request: NextRequest) {
     let context = '';
     let eventInfo: any;
 
-    // Handle image upload directly
+    // Handle image upload with Gemini
     if (body.imageData) {
-      console.log('Processing uploaded image with Perplexity...');
-      eventInfo = await perplexityParser.parseEventFromImage(body.imageData);
+      console.log('Processing uploaded image with Gemini...');
+      const geminiParser = new GeminiParser(process.env.GEMINI_API_KEY!);
+      eventInfo = await geminiParser.parseEventFromImage(body.imageData);
     }
     // Extract from Instagram URL
     else if (body.instagramUrl) {
