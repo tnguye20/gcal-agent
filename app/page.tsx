@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import NextImage from 'next/image';
+import { useUser, useClerk, SignIn } from '@clerk/nextjs';
 import { ExtractionRequest, ExtractionResponse } from '@/lib/types';
 
 type TabType = 'instagram' | 'text' | 'image';
 
 export default function Home() {
+  const { isSignedIn, user } = useUser();
+  const { openSignIn } = useClerk();
   const [activeTab, setActiveTab] = useState<TabType>('instagram');
   const [instagramUrl, setInstagramUrl] = useState('');
   const [text, setText] = useState('');
@@ -229,6 +232,13 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if user is signed in
+    if (!isSignedIn) {
+      // Open Clerk sign-in popup
+      openSignIn();
+      return;
+    }
     
     setLoading(true);
     setError('');
