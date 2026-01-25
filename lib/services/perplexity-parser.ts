@@ -16,13 +16,24 @@ export class PerplexityParser {
    * Parse text using Perplexity to extract calendar event information
    */
   async parseEventInfo(text: string, context?: string): Promise<ParsedEventInfo> {
-    const currentDate = new Date().toISOString();
-    const currentYear = new Date().getFullYear();
+    const now = new Date();
+    const currentDate = now.toISOString();
+    const currentYear = now.getFullYear();
+    const humanReadableDate = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
     
     const systemPrompt = `You are an expert at extracting event information from social media posts and text. 
 Extract calendar event details from the provided text.
 
-Current date/time for reference: ${currentDate}
+Current date/time: ${humanReadableDate}
+Current date (ISO): ${currentDate}
 Current year: ${currentYear}
 
 IMPORTANT: Return ONLY a valid JSON object. Do not wrap it in markdown code blocks or backticks.
@@ -124,12 +135,25 @@ Return ONLY the JSON object, no additional text or formatting.`;
    * Parse event from image using Perplexity with base64 data
    */
   async parseEventFromImage(imageBase64: string): Promise<ParsedEventInfo> {
-    const currentDate = new Date().toISOString();
+    const now = new Date();
+    const currentDate = now.toISOString();
+    const currentYear = now.getFullYear();
+    const humanReadableDate = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
     
     const systemPrompt = `You are an expert at extracting event information from images.
 Extract calendar event details from the provided image.
 
-Current date/time for reference: ${currentDate}
+Current date/time: ${humanReadableDate}
+Current date (ISO): ${currentDate}
+Current year: ${currentYear}
 
 IMPORTANT: Return ONLY a valid JSON object. Do not wrap it in markdown code blocks or backticks.
 

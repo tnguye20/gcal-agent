@@ -12,8 +12,18 @@ export class GeminiParser {
    * Parse event from image using Gemini Vision
    */
   async parseEventFromImage(imageBase64: string): Promise<ParsedEventInfo> {
-    const currentDate = new Date().toISOString();
-    const currentYear = new Date().getFullYear();
+    const now = new Date();
+    const currentDate = now.toISOString();
+    const currentYear = now.getFullYear();
+    const humanReadableDate = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
     
     // Use gemini-pro-vision model which supports vision tasks
     const model = this.genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
@@ -21,7 +31,8 @@ export class GeminiParser {
     const prompt = `You are an expert at extracting event information from images.
 Extract calendar event details from the provided image.
 
-Current date/time for reference: ${currentDate}
+Current date/time: ${humanReadableDate}
+Current date (ISO): ${currentDate}
 Current year: ${currentYear}
 
 Return a JSON object with:
