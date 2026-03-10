@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PerplexityParser } from '@/lib/services/perplexity-parser';
+import { GeminiParser } from '@/lib/services/gemini-parser';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,15 +12,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.PERPLEXITY_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
-        { error: 'Perplexity API key not configured' },
+        { error: 'Gemini API key not configured' },
         { status: 500 }
       );
     }
 
-    const perplexityParser = new PerplexityParser(process.env.PERPLEXITY_API_KEY);
-    const eventInfo = await perplexityParser.parseEventInfo(text);
+    const geminiParser = new GeminiParser(process.env.GEMINI_API_KEY);
+    const eventInfo = await geminiParser.parseEventInfo(text);
     
     return NextResponse.json({ success: true, eventInfo });
   } catch (error: any) {

@@ -1,13 +1,13 @@
-# 🚀 Quick Start - Perplexity Edition
+# 🚀 Quick Start - Gemini Edition
 
 ## Setup (One Time)
 
 ```bash
-# 1. Get Perplexity API key
-https://www.perplexity.ai/settings/api
+# 1. Get Gemini API key
+https://aistudio.google.com/app/apikey
 
 # 2. Add to .env
-echo "PERPLEXITY_API_KEY=pplx-your-key" > .env
+echo "GEMINI_API_KEY=your-key" > .env
 
 # 3. Install dependencies (if needed)
 pnpm install
@@ -29,13 +29,13 @@ http://localhost:3000
 ## Environment Variables
 
 ```bash
-PERPLEXITY_API_KEY=pplx-your-key-here  # Required
-PORT=3000                               # Optional
+GEMINI_API_KEY=your-key-here  # Required
+PORT=3000                     # Optional
 ```
 
 ## Features
 
-✅ **Perplexity Sonar AI** - Intelligent event parsing with online access
+✅ **Gemini AI** - Intelligent event parsing
 ✅ **Instagram Support** - Paste any Instagram post/reel URL
 ✅ **Natural Language** - Type event details in plain English
 ✅ **Multiple Calendars** - Google, Outlook, Apple
@@ -52,16 +52,16 @@ curl -X POST http://localhost:3000/api/convert \
 
 ## Models Available
 
-- `sonar` (default)
-- `llama-3.1-sonar-small-128k-online` (faster)
-- `llama-3.1-sonar-huge-128k-online` (most powerful)
+- `gemini-3-flash-preview` (default)
+- `gemini-1.5-flash` (faster)
+- `gemini-1.5-pro` (most powerful)
 
-Change in: `lib/services/perplexity-parser.ts`
+Change in: `lib/services/gemini-parser.ts`
 
 ## Troubleshooting
 
 **API Key Error?**
-- Check `.env` has `PERPLEXITY_API_KEY=pplx-...`
+- Check `.env` has `GEMINI_API_KEY=...`
 - Restart server: `pnpm dev`
 
 **Port in Use?**
@@ -72,10 +72,9 @@ Change in: `lib/services/perplexity-parser.ts`
 
 ## Links
 
-- **API Docs**: https://docs.perplexity.ai/
-- **Get API Key**: https://www.perplexity.ai/settings/api
+- **API Docs**: https://ai.google.dev/docs
+- **Get API Key**: https://aistudio.google.com/app/apikey
 - **Full README**: [README.md](README.md)
-- **Migration Guide**: [PERPLEXITY_MIGRATION.md](PERPLEXITY_MIGRATION.md)
 
 ---
 

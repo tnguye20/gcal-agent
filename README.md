@@ -5,7 +5,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-8+-orange)](https://pnpm.io/)
-[![Perplexity](https://img.shields.io/badge/Perplexity-Sonar-purple)](https://www.perplexity.ai/)
+[![Gemini](https://img.shields.io/badge/Gemini-2.0-blue)](https://ai.google.dev/)
 
 Convert Instagram posts, reels, and plain text into Google Calendar invite URLs using AI-powered event extraction.
 
@@ -19,7 +19,7 @@ Convert Instagram posts, reels, and plain text into Google Calendar invite URLs 
 
 # Or manually:
 pnpm install
-echo "PERPLEXITY_API_KEY=pplx-your-key" > .env
+echo "GEMINI_API_KEY=your-key" > .env
 pnpm dev
 ```
 
@@ -30,7 +30,7 @@ Open **http://localhost:3000** 🎉
 ## 🚀 Features
 
 - **Instagram URL Support**: Paste any Instagram post or reel URL
-- **AI-Powered Parsing**: Uses Perplexity Sonar to intelligently extract event details
+- **AI-Powered Parsing**: Uses Gemini AI to intelligently extract event details
 - **Multiple Extraction Methods**: 
   - oEmbed API (fast, public)
   - Headless browser scraping (fallback)
@@ -42,7 +42,7 @@ Open **http://localhost:3000** 🎉
 
 - Node.js 18+
 - pnpm 8+ (Install: `npm install -g pnpm`)
-- Perplexity API key ([Get one here](https://www.perplexity.ai/settings/api))
+- Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
 
 ## 🛠️ Installation
 
@@ -56,9 +56,9 @@ Open **http://localhost:3000** 🎉
    cp .env.example .env
    ```
    
-   Edit `.env` and add your Perplexity API key:
+   Edit `.env` and add your Gemini API key:
    ```
-   PERPLEXITY_API_KEY=pplx-...
+   GEMINI_API_KEY=your-key-here
    PORT=3000
    ```
 
@@ -142,7 +142,7 @@ gcal-agent/
 ├── lib/
 │   ├── services/
 │   │   ├── instagram-extractor.ts    # Extract data from Instagram
-│   │   ├── perplexity-parser.ts      # AI-powered event parsing
+│   │   ├── gemini-parser.ts           # AI-powered event parsing
 │   │   └── calendar-generator.ts     # Generate calendar URLs
 │   ├── utils/
 │   │   └── validators.ts             # Input validation
@@ -160,7 +160,7 @@ gcal-agent/
 1. **User Input**: Next.js React interface for Instagram URL or text
 2. **API Route**: Next.js API route handles the request
 3. **Data Extraction**: Extract Instagram post data (oEmbed → Playwright fallback)
-4. **AI Parsing**: Perplexity Sonar extracts event details from text
+4. **AI Parsing**: Gemini AI extracts event details from text
 5. **Calendar Generation**: Generate URLs for Google, Outlook, Apple calendars
 6. **Response**: Return event details and calendar links to the client
 
@@ -173,15 +173,13 @@ gcal-agent/
 
 ## ⚙️ Configuration
 
-### Perplexity Model
+### Gemini Model
 
-Default: `sonar`
+Default: `gemini-3-flash-preview`
 
-To change the model, edit [lib/services/perplexity-parser.ts](lib/services/perplexity-parser.ts):
+To change the model, edit [lib/services/gemini-parser.ts](lib/services/gemini-parser.ts):
 ```typescript
-model: 'sonar' // or 'llama-3.1-sonar-small-128k-online' for faster
-```
-model: 'gpt-4-turbo' // or 'gpt-3.5-turbo' for faster/cheaper
+model: 'gemini-3-flash-preview' // or 'gemini-1.5-pro' for more powerful
 ```
 
 ### Port
@@ -196,10 +194,10 @@ Note: Next.js uses port 3000 by default. You can override with `pnpm dev -p 3001
 - oEmbed API has rate limits
 - Fallback scraping requires Playwright browsers installed
 
-**Perplexity parsing errors**:
+**Gemini parsing errors**:
 - Check API key is valid
 - Ensure sufficient API credits
-- Check Perplexity API status
+- Check Gemini API status
 
 **Date parsing issues**:
 - AI makes best effort to extract dates
@@ -214,6 +212,6 @@ MIT
 
 Contributions welcome! Please feel free to submit a Pull Request.
 
----Next.js, TypeScript, Perplexity AI, Tailwind CSS
+---
 
-Built with ❤️ using Next.js, TypeScript, Perplexity AI, Tailwind CSS, and Playwright
+Built with ❤️ using Next.js, TypeScript, Gemini AI, Tailwind CSS, and Playwright

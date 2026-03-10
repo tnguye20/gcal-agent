@@ -2,16 +2,16 @@
 
 ## 🚀 Get Started in 3 Steps
 
-### 1. Set Your Perplexity API Key
+### 1. Set Your Gemini API Key
 
-Edit the `.env` file and add your Perplexity API key:
+Edit the `.env` file and add your Gemini API key:
 
 ```bash
-PERPLEXITY_API_KEY=pplx-...your-key-here
+GEMINI_API_KEY=your-key-here
 PORT=3000
 ```
 
-Get your API key from: https://www.perplexity.ai/settings/api
+Get your API key from: https://aistudio.google.com/app/apikey
 
 ### 2. Install Dependencies & Start the Server
 
@@ -79,7 +79,7 @@ node test-api.js
 ## 🎨 Features
 
 ✅ Built with Next.js 14 (App Router)
-✅ AI-powered event extraction with Perplexity Sonar
+✅ AI-powered event extraction with Gemini AI
 ✅ Instagram post/reel scraping (oEmbed + Playwright fallback)
 ✅ Natural language date/time parsing
 ✅ Multiple calendar formats (Google, Outlook, Apple)
@@ -91,7 +91,7 @@ node test-api.js
 
 ## 🔍 Troubleshooting
 
-**"Perplexity API key not found"**
+**"Gemini API key not found"**
 - Make sure `.env` file exists and contains your API key
 - Restart the server after adding the key
 

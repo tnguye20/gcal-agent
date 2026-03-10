@@ -9,16 +9,16 @@ echo ""
 if [ ! -f .env ]; then
     echo "❌ ERROR: .env file not found"
     echo "Please create .env file with:"
-    echo "  PERPLEXITY_API_KEY=pplx-your-key-here"
+    echo "  GEMINI_API_KEY=your-key-here"
     echo ""
     echo "Run: cp .env.example .env"
     exit 1
 fi
 
-if grep -q "PERPLEXITY_API_KEY=$" .env || grep -q "PERPLEXITY_API_KEY=your_perplexity_api_key_here" .env; then
-    echo "⚠️  WARNING: Perplexity API key not set in .env"
+if grep -q "GEMINI_API_KEY=$" .env || grep -q "GEMINI_API_KEY=your_gemini_api_key_here" .env; then
+    echo "⚠️  WARNING: Gemini API key not set in .env"
     echo "Please edit .env and add your API key"
-    echo "Get one here: https://www.perplexity.ai/settings/api"
+    echo "Get one here: https://aistudio.google.com/app/apikey"
     echo ""
     read -p "Continue anyway? (y/N) " -n 1 -r
     echo

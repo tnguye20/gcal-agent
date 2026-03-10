@@ -19,7 +19,6 @@ export const metadata: Metadata = {
     'social media events',
     'automatic event creation',
     'calendar invite generator',
-    'perplexity ai',
     'gemini ai',
   ],
   authors: [{ name: 'CalSnap' }],

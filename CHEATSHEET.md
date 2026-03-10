@@ -10,7 +10,7 @@ pnpm install && pnpm exec playwright install chromium && pnpm dev
 npm install -g pnpm && pnpm install && pnpm exec playwright install chromium && pnpm dev
 ```
 
-Don't forget to add `PERPLEXITY_API_KEY` to `.env` first!
+Don't forget to add `GEMINI_API_KEY` to `.env` first!
 
 ---
 
@@ -54,7 +54,7 @@ lib/
 ## 🔑 Environment Variables
 
 ```env
-PERPLEXITY_API_KEY=pplx-proj-...    # Required
+GEMINI_API_KEY=your-key-here       # Required
 PORT=3000                          # Optional (Next.js default)
 ```
 
@@ -83,7 +83,7 @@ curl -X POST http://localhost:3000/api/convert \
 - **Next.js 14** - React framework with App Router
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
-- **Perplexity Sonar** - AI parsing
+- **Gemini AI** - AI parsing
 - **Playwright** - Web scraping
 - **pnpm** - Package manager
 
@@ -158,6 +158,6 @@ pnpm exec playwright install --with-deps chromium
 
 ---
 
-**Built with Next.js, TypeScript, Perplexity AI, Tailwind CSS**
+**Built with Next.js, TypeScript, Gemini AI, Tailwind CSS**
 
 Need help? Check the full [README.md](README.md)

@@ -27,7 +27,7 @@ This project now uses Clerk for authentication. Follow these steps to get it wor
    CLERK_SECRET_KEY=sk_test_your_key_here
    ```
 
-3. Keep your other existing environment variables (GEMINI_API_KEY, PERPLEXITY_API_KEY)
+3. Keep your other existing environment variables (GEMINI_API_KEY)
 
 ## 4. Run the Application
 

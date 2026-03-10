@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { InstagramExtractor } from '@/lib/services/instagram-extractor';
-import { PerplexityParser } from '@/lib/services/perplexity-parser';
 import { GeminiParser } from '@/lib/services/gemini-parser';
 import { CalendarGenerator } from '@/lib/services/calendar-generator';
 import { ExtractionRequestSchema, normalizeInstagramUrl } from '@/lib/utils/validators';
@@ -39,18 +38,8 @@ export async function POST(request: NextRequest) {
       body = await request.json();
     }
 
-    // Validate API keys
-    if (!process.env.PERPLEXITY_API_KEY) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Perplexity API key not configured',
-        },
-        { status: 500 }
-      );
-    }
-
-    if (body.imageData && !process.env.GEMINI_API_KEY) {
+    // Validate API key
+    if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
         {
           success: false,
@@ -60,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const perplexityParser = new PerplexityParser(process.env.PERPLEXITY_API_KEY);
+    const geminiParser = new GeminiParser(process.env.GEMINI_API_KEY);
 
     let extractedText = '';
     let sourceUrl = '';
@@ -70,7 +59,6 @@ export async function POST(request: NextRequest) {
     // Handle image upload with Gemini
     if (body.imageData) {
       console.log('Processing uploaded image with Gemini...');
-      const geminiParser = new GeminiParser(process.env.GEMINI_API_KEY!);
       eventInfo = await geminiParser.parseEventFromImage(body.imageData);
     }
     // Extract from Instagram URL
@@ -83,17 +71,17 @@ export async function POST(request: NextRequest) {
       
       console.log('Extracted from Instagram:', postData);
       
-      // Parse event info using Perplexity
-      console.log('Parsing with Perplexity:', extractedText);
-      eventInfo = await perplexityParser.parseEventInfo(extractedText, context);
+      // Parse event info using Gemini
+      console.log('Parsing with Gemini:', extractedText);
+      eventInfo = await geminiParser.parseEventInfo(extractedText, context);
     } 
     // Or use plain text
     else if (body.text) {
       extractedText = body.text;
       
-      // Parse event info using Perplexity
-      console.log('Parsing with Perplexity:', extractedText);
-      eventInfo = await perplexityParser.parseEventInfo(extractedText, context);
+      // Parse event info using Gemini
+      console.log('Parsing with Gemini:', extractedText);
+      eventInfo = await geminiParser.parseEventInfo(extractedText, context);
     }
     else {
       return NextResponse.json(

@@ -21,7 +21,6 @@
     "@clerk/nextjs": "^6.36.10",
     "@google/generative-ai": "^0.24.1",
     "next": "^14.1.0",
-    "openai": "^4.28.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zod": "^3.22.4"

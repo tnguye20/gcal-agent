@@ -19,17 +19,17 @@ if [ ! -f .env ]; then
     cp .env.example .env
     echo "✅ .env created"
     echo ""
-    echo "⚙️  Please edit .env and add your Perplexity API key:"
-    echo "   PERPLEXITY_API_KEY=pplx-..."
+    echo "⚙️  Please edit .env and add your Gemini API key:"
+    echo "   GEMINI_API_KEY=your-key-here"
     echo ""
 else
     echo "✅ .env file exists"
 fi
 
-# Check if PERPLEXITY_API_KEY is set
-if grep -q "PERPLEXITY_API_KEY=$" .env || grep -q "PERPLEXITY_API_KEY=your_perplexity_api_key_here" .env; then
-    echo "⚠️  WARNING: Perplexity API key not set in .env"
-    echo "   Get your API key from: https://www.perplexity.ai/settings/api"
+# Check if GEMINI_API_KEY is set
+if grep -q "GEMINI_API_KEY=$" .env || grep -q "GEMINI_API_KEY=your_gemini_api_key_here" .env; then
+    echo "⚠️  WARNING: Gemini API key not set in .env"
+    echo "   Get your API key from: https://aistudio.google.com/app/apikey"
     echo ""
 fi
 
@@ -44,7 +44,7 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "🎯 Next steps:"
-echo "   1. Add your OpenAI API key to .env file"
+echo "   1. Add your Gemini API key to .env file"
 echo "   2. Run: pnpm dev"
 echo "   3. Open: http://localhost:3000"
 echo ""
